@@ -12,15 +12,6 @@ from keras.layers.pooling import MaxPooling2D
 from keras.preprocessing.image import ImageDataGenerator
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-import matplotlib as mpl
-mpl.use('TkAgg')
-import matplotlib.pyplot as plt
-
-# command line argument
-ap = argparse.ArgumentParser()
-ap.add_argument("--mode",help="train/display")
-a = ap.parse_args()
-mode = a.mode 
 
 # Create the model
 model = Sequential()
@@ -55,7 +46,14 @@ class App:
         self.window = window
         self.window.title(window_title)
         self.video_source = video_source
+        
         self.emotion_dcit = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutral", 5: "Sad", 6: "Surprised"}
+        self.radio_value = tkinter.IntVar()
+        self.radio_value.set(0)
+        self.faces = [("Trump", 0), ("RonaldMcDonald", 1), ("NicholasCage", 2), ("Emoji", 3), ("Shrek", 4), ("Pepe", 5)]
+        self.selected_face = 4
+
+        self.resized = ""
 
         # open video source (by default this will try to open the computer webcam)
         self.vid = MyVideoCapture(self.video_source)
@@ -64,9 +62,10 @@ class App:
         self.canvas = tkinter.Canvas(window, width = self.vid.width, height = self.vid.height)
         self.canvas.pack()
 
-        # Button that lets the user take a snapshot
-        self.btn_choice = tkinter.Radiobutton(window, text="Snapshot", width=50, command=self.snapshot)
-        self.btn_choice.pack(anchor=tkinter.CENTER, expand=True)
+        
+        
+        for index, face in enumerate(self.faces):
+            tkinter.Radiobutton(window, text=face[0], width=50, variable = self.radio_value, command=self.radio_choice, value=index).pack()
 
         # After it is called once, the update method will be automatically called every delay milliseconds
         self.delay = 15
@@ -74,12 +73,6 @@ class App:
 
         self.window.mainloop()
 
-    def snapshot(self):
-        # Get a frame from the video source
-        ret, frame = self.vid.get_frame()
-
-        if ret:
-            cv2.imwrite("frame-" + time.strftime("%d-%m-%Y-%H-%M-%S") + ".jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
  
     def update(self):
         # Get a frame from the video source
@@ -95,33 +88,37 @@ class App:
             prediction = model.predict(cropped_img)
             maxindex = int(np.argmax(prediction))
 
-            
-            print(self.emotion_dcit[maxindex])
             if emotion_dict[maxindex] == "Angry":
-                im = cv2.imread('angry.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/angry.png')
             elif emotion_dict[maxindex] == "Disgusted":
-                im = cv2.imread('disgusted.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/disgusted.png')
             elif emotion_dict[maxindex] == "Fearful":
-                im = cv2.imread('fearful.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/fearful.png')
             elif emotion_dict[maxindex] == "Happy":
-                im = cv2.imread('happy.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/happy.png')
             elif emotion_dict[maxindex] == "Neutral":
-                im = cv2.imread('neutral.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/neutral.png')
             elif emotion_dict[maxindex] == "Sad":
-                im = cv2.imread('sad.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/sad.png')
             elif emotion_dict[maxindex] == "Surprised":
-                im = cv2.imread('surprised.png')
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/suprised.png')
             else:
-                im = cv2.imread('neutral.jpg')
-            resized = cv2.resize(im, (h, w))
-            frame[y: y+h, x: x+w] = resized
-        if ret:
+                im = cv2.imread('faces/' + self.faces[self.radio_value.get()][0] + '/neutral.jpg')
+
+            self.resized = cv2.resize(im, (h, w))
+
+            frame[y: y+h, x: x+w] = self.resized.astype(object)
+            
+ 
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
+            
             self.canvas.create_image(0, 0, image = self.photo, anchor = tkinter.NW)
-##            self.canvas.create_rectangle(x, y, x+w, y+w)
 
 
         self.window.after(self.delay, self.update)
+
+    def radio_choice(self):
+        pass
  
  
 class MyVideoCapture:
