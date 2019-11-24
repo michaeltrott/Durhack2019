@@ -97,12 +97,28 @@ class App:
 
             
             print(self.emotion_dcit[maxindex])
-            
- 
+            if emotion_dict[maxindex] == "Angry":
+                im = cv2.imread('angry.png')
+            elif emotion_dict[maxindex] == "Disgusted":
+                im = cv2.imread('disgusted.png')
+            elif emotion_dict[maxindex] == "Fearful":
+                im = cv2.imread('fearful.png')
+            elif emotion_dict[maxindex] == "Happy":
+                im = cv2.imread('happy.png')
+            elif emotion_dict[maxindex] == "Neutral":
+                im = cv2.imread('neutral.png')
+            elif emotion_dict[maxindex] == "Sad":
+                im = cv2.imread('sad.png')
+            elif emotion_dict[maxindex] == "Surprised":
+                im = cv2.imread('surprised.png')
+            else:
+                im = cv2.imread('neutral.jpg')
+            resized = cv2.resize(im, (h, w))
+            frame[y: y+h, x: x+w] = resized
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
             self.canvas.create_image(0, 0, image = self.photo, anchor = tkinter.NW)
-            self.canvas.create_rectangle(x, y, x+w, y+w)
+##            self.canvas.create_rectangle(x, y, x+w, y+w)
 
 
         self.window.after(self.delay, self.update)
